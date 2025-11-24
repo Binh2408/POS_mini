@@ -74,7 +74,7 @@ const ProductFormModal = ({
     }
     setErrors({});
   }, [product, mode, isOpen]);
-const handleCategoryChange = (e) => {
+  const handleCategoryChange = (e) => {
     const selectedId = e.target.value;
     const selected = categories.find((c) => c.id === Number(selectedId));
     setFormData((prev) => ({
@@ -96,7 +96,8 @@ const handleCategoryChange = (e) => {
   const validate = () => {
     const newErrors = {};
 
-    if (!formData.name.trim()) newErrors.name = "Tên sản phẩm không được để trống";
+    if (!formData.name.trim())
+      newErrors.name = "Tên sản phẩm không được để trống";
     if (!formData.costPrice || formData.costPrice <= 0)
       newErrors.costPrice = "Giá gốc phải lớn hơn 0";
     if (!formData.price || formData.price <= 0)
@@ -151,7 +152,9 @@ const handleCategoryChange = (e) => {
               </div>
               <div>
                 <h2 className="text-2xl font-bold">
-                  {mode === "create" ? "Thêm sản phẩm mới" : "Chỉnh sửa sản phẩm"}
+                  {mode === "create"
+                    ? "Thêm sản phẩm mới"
+                    : "Chỉnh sửa sản phẩm"}
                 </h2>
                 <p className="text-blue-100 text-sm">
                   {mode === "create"
@@ -193,7 +196,9 @@ const handleCategoryChange = (e) => {
                 }`}
                 placeholder="Nhập tên sản phẩm"
               />
-              {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name}</p>}
+              {errors.name && (
+                <p className="text-red-500 text-sm mt-1">{errors.name}</p>
+              )}
             </div>
 
             {/* Giá gốc */}
@@ -216,7 +221,9 @@ const handleCategoryChange = (e) => {
                 min="0"
                 step="1000"
               />
-              {errors.costPrice && <p className="text-red-500 text-sm mt-1">{errors.costPrice}</p>}
+              {errors.costPrice && (
+                <p className="text-red-500 text-sm mt-1">{errors.costPrice}</p>
+              )}
             </div>
 
             {/* Giá bán */}
@@ -239,7 +246,9 @@ const handleCategoryChange = (e) => {
                 min="0"
                 step="1000"
               />
-              {errors.price && <p className="text-red-500 text-sm mt-1">{errors.price}</p>}
+              {errors.price && (
+                <p className="text-red-500 text-sm mt-1">{errors.price}</p>
+              )}
             </div>
 
             {/* Số lượng tồn kho */}
@@ -261,7 +270,9 @@ const handleCategoryChange = (e) => {
                 placeholder="0"
                 min="0"
               />
-              {errors.stock && <p className="text-red-500 text-sm mt-1">{errors.stock}</p>}
+              {errors.stock && (
+                <p className="text-red-500 text-sm mt-1">{errors.stock}</p>
+              )}
             </div>
 
             {/* Mức cảnh báo tồn kho */}
@@ -300,63 +311,84 @@ const handleCategoryChange = (e) => {
                 }`}
                 readOnly={mode === "edit"}
               />
-              {errors.barcode && <p className="text-red-500 text-sm mt-1">{errors.barcode}</p>}
+              {errors.barcode && (
+                <p className="text-red-500 text-sm mt-1">{errors.barcode}</p>
+              )}
             </div>
 
             {/* Danh mục */}
             <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
-              <span className="flex items-center gap-2">
-                <Tag size={16} /> Danh mục <span className="text-red-500">*</span>
-              </span>
-            </label>
-            <select
-              value={formData.category?.id || ""}
-              onChange={handleCategoryChange}
-              className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 ${
-                errors.category ? "border-red-500" : "border-gray-300"
-              }`}
-              disabled={mode === "edit"} // 🟢 có thể tắt khi chỉnh sửa nếu bạn muốn
-            >
-              <option value="">-- Chọn danh mục --</option>
-              {categories.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.name}
-                </option>
-              ))}
-            </select>
-            {errors.category && (
-              <p className="text-red-500 text-sm mt-1">{errors.category}</p>
-            )}
-          </div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                <span className="flex items-center gap-2">
+                  <Tag size={16} /> Danh mục{" "}
+                  <span className="text-red-500">*</span>
+                </span>
+              </label>
+              <select
+                value={formData.category?.id || ""}
+                onChange={handleCategoryChange}
+                className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 ${
+                  errors.category ? "border-red-500" : "border-gray-300"
+                }`}
+                disabled={mode === "edit"} // 🟢 có thể tắt khi chỉnh sửa nếu bạn muốn
+              >
+                <option value="">-- Chọn danh mục --</option>
+                {categories.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.name}
+                  </option>
+                ))}
+              </select>
+              {errors.category && (
+                <p className="text-red-500 text-sm mt-1">{errors.category}</p>
+              )}
+            </div>
           </div>
 
           {/* Ảnh sản phẩm */}
+          {/* Ảnh sản phẩm */}
           <div className="md:col-span-2">
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
-              <span className="flex items-center gap-2">
-                <ImageIcon size={16} /> Ảnh sản phẩm
-              </span>
+            <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+              <ImageIcon size={16} /> Ảnh sản phẩm
             </label>
+
+            {/* Upload file */}
             <input
-              type="text"
-              name="imageUrl"
-              value={formData.imageUrl}
-              onChange={handleChange}
-              placeholder="https://example.com/image.jpg"
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-            />
-            {formData.imageUrl && (
-              <div className="mt-3">
-                <img
-                  src={formData.imageUrl}
-                  alt="Preview"
-                  className="w-32 h-32 object-cover rounded-lg border-2 border-gray-200"
-                  onError={(e) => {
-                    e.target.src =
-                      "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=200";
-                  }}
-                />
+  type="file"
+  accept="image/*"
+  onChange={(e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setFormData((prev) => ({
+        ...prev,
+        imageFile: file, // Lưu file ảnh để gửi lên backend
+        previewImage: URL.createObjectURL(file), // Hiển thị ảnh xem trước
+      }));
+    }
+  }}
+  className="w-full px-4 py-2 border border-gray-300 rounded-lg mb-4"
+  title="Chọn ảnh sản phẩm"
+/>
+
+
+            {/* Xem trước ảnh */}
+            {formData.previewImage || formData.imageUrl || product?.imageUrl ? (
+              <img
+                src={
+                  formData.previewImage ||
+                  formData.imageUrl ||
+                  product?.imageUrl
+                }
+                alt="Preview"
+                className="w-40 h-40 object-cover rounded-lg border-2 border-gray-200"
+                onError={(e) => {
+                  e.target.src =
+                    "https://via.placeholder.com/150?text=Image+Invalid";
+                }}
+              />
+            ) : (
+              <div className="w-40 h-40 bg-gray-100 flex items-center justify-center rounded-lg border-2 border-gray-200 text-gray-400">
+                Chưa có ảnh
               </div>
             )}
           </div>

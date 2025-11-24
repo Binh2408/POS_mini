@@ -32,15 +32,38 @@ const getProductByBarcode = async (storeId, barcode) => {
   }
 };
 
-const createProduct = async (storeId, product) => {
+const createProduct = async (storeId, data) => {
   try {
-    const res = await api.post(`${URL}/store/${storeId}`, product, { withCredentials: true });
+    const formData = new FormData();
+
+    // File
+    if (data.imageFile) {
+      formData.append("imageFile", data.imageFile);
+    }
+
+    // JSON của product
+    const productData = { ...data };
+    delete productData.imageFile;
+
+    formData.append(
+      "product",
+      new Blob([JSON.stringify(productData)], { type: "application/json" })
+    );
+
+    const res = await api.post(`${URL}/store/${storeId}`, formData, {
+      withCredentials: true,
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+
     return res.data;
   } catch (error) {
-    console.error("Lỗi khi tạo sản phẩm: " + error);
+    console.error("Lỗi khi tạo sản phẩm: ", error);
     throw error;
   }
 };
+
 
 const getProductById = async (storeId, id) => {
   try {
@@ -52,15 +75,43 @@ const getProductById = async (storeId, id) => {
   }
 }
 
-const updateProduct = async (storeId, id, product) => {
+const updateProduct = async (storeId, id, data) => {
   try {
-    const response = await api.put(`${URL}/store/${storeId}/${id}`,product, {withCredentials: true});
-    return response.data;
+    const formData = new FormData();
+
+    // Nếu có file ảnh mới
+    if (data.imageFile) {
+      formData.append("imageFile", data.imageFile);
+    }
+
+    // Xóa imageFile khỏi JSON
+    const productData = { ...data };
+    delete productData.imageFile;
+
+    // Gửi JSON dạng Blob
+    formData.append(
+      "product",
+      new Blob([JSON.stringify(productData)], { type: "application/json" })
+    );
+
+    const res = await api.put(
+      `${URL}/store/${storeId}/${id}`,
+      formData,
+      {
+        withCredentials: true,
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      }
+    );
+
+    return res.data;
   } catch (error) {
-    console.error("Lỗi cập nhật sản phẩm: " + error);
+    console.error("Lỗi cập nhật sản phẩm: ", error);
     throw error;
   }
-}
+};
+
 
 const deleteProduct = async (storeId, id) => {
   try {

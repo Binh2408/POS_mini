@@ -9,6 +9,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Map;
 
@@ -25,12 +26,14 @@ public class ProductController {
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
-    @PostMapping("/store/{storeId}")
+    @PostMapping(value = "/store/{storeId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> createProduct(
             @PathVariable Long storeId,
-            @RequestBody Product product) {
+            @RequestPart("product") Product product,
+            @RequestPart(value = "imageFile", required = false) MultipartFile imageFile
+    ) {
         try {
-            Product saved = productService.save(storeId, product);
+            Product saved = productService.save(storeId, product, imageFile);
             return ResponseEntity.status(HttpStatus.CREATED).body(Map.of(
                     "message", "Tạo sản phẩm thành công",
                     "data", saved
@@ -42,6 +45,7 @@ public class ProductController {
             ));
         }
     }
+
 
     @GetMapping("/{storeId}/{id}")
     public ResponseEntity<?> getProductById(
@@ -55,30 +59,28 @@ public class ProductController {
     }
 
     // 🟡 Cập nhật sản phẩm trong chi nhánh
-    @PutMapping("/store/{storeId}/{id}")
+//
+    @PutMapping(value = "/store/{storeId}/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> updateProduct(
             @PathVariable Long storeId,
             @PathVariable Long id,
-            @RequestBody Product productDetails
+            @RequestPart("product") Product productDetails,
+            @RequestPart(value = "imageFile", required = false) MultipartFile imageFile
     ) {
         try {
-            Product updated = productService.update(id, storeId, productDetails);
+            Product updated = productService.update(id, storeId, productDetails, imageFile);
             return ResponseEntity.ok(Map.of(
                     "message", "Cập nhật sản phẩm thành công",
                     "data", updated
             ));
-        } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of(
-                    "message", "Không tìm thấy sản phẩm cần cập nhật",
-                    "error", e.getMessage()
-            ));
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(
-                    "message", "Đã xảy ra lỗi khi cập nhật sản phẩm",
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of(
+                    "message", "Không thể cập nhật sản phẩm",
                     "error", e.getMessage()
             ));
         }
     }
+
 
     @DeleteMapping("/{storeId}/{id}")
     public ResponseEntity<?> deleteProduct(

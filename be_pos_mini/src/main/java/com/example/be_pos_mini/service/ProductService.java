@@ -16,6 +16,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.awt.*;
@@ -43,28 +44,40 @@ public class ProductService implements IProductService {
 
     @Transactional
     @Override
-    public Product save(Long storeId, Product product) {
-        // Kiểm tra store tồn tại
+    public Product save(Long storeId, Product product, MultipartFile imageFile) {
+
         Store store = storeRepository.findById(storeId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy chi nhánh ID = " + storeId));
 
-        // Kiểm tra trùng barcode nếu user nhập thủ công
+        // Kiểm tra trùng barcode nếu có nhập tay
         if (product.getBarcode() != null && !product.getBarcode().isBlank()) {
             if (productRepository.findByStore_IdAndBarcode(storeId, product.getBarcode()).isPresent()) {
                 throw new RuntimeException("Mã vạch đã tồn tại trong chi nhánh này");
             }
         } else {
-            // Sinh barcode mới đảm bảo duy nhất
+            // Tạo barcode tự động
             String barcode = generateUniqueBarcode(storeId);
             product.setBarcode(barcode);
         }
 
-        // Gắn store và set thời gian
         product.setStore(store);
         product.setCreatedAt(LocalDateTime.now());
         product.setUpdatedAt(LocalDateTime.now());
 
-        // Tạo ảnh mã vạch
+        // 🟦 1. Upload ảnh sản phẩm lên Cloudinary nếu có
+        if (imageFile != null && !imageFile.isEmpty()) {
+            try {
+                var uploadResult = cloudinary.uploader().upload(
+                        imageFile.getBytes(),
+                        ObjectUtils.asMap("folder", "pos/products")
+                );
+                product.setImageUrl(uploadResult.get("secure_url").toString());
+            } catch (Exception e) {
+                throw new RuntimeException("Không upload được ảnh sản phẩm", e);
+            }
+        }
+
+        // 🟧 2. Tạo barcode + upload lên Cloudinary
         try {
             File barcodeFile = File.createTempFile("barcode-" + product.getBarcode(), ".png");
             generateBarcodeImageToFile(product.getBarcode(), barcodeFile.getAbsolutePath());
@@ -73,13 +86,13 @@ public class ProductService implements IProductService {
             product.setBarcodeImageUrl(cloudinaryBarcodeUrl);
 
             barcodeFile.delete();
-
         } catch (Exception e) {
             throw new RuntimeException("Không thể tạo ảnh mã vạch", e);
         }
 
         return productRepository.save(product);
     }
+
 
     @Override
     public byte[] generateBarcodeImage(String barcode) throws Exception {
@@ -105,9 +118,12 @@ public class ProductService implements IProductService {
     }
 
     @Override
-    public Product update(Long id, Long storeId, Product productDetails) {
+    public Product update(Long id, Long storeId, Product productDetails, MultipartFile imageFile) {
+
         Product existing = productRepository.findByIdAndStore_Id(id, storeId)
                 .orElseThrow(() -> new RuntimeException("Sản phẩm không tồn tại trong chi nhánh này"));
+
+        // Cập nhật thông tin
         existing.setName(productDetails.getName());
         existing.setCategory(productDetails.getCategory());
         existing.setUnit(productDetails.getUnit());
@@ -115,10 +131,24 @@ public class ProductService implements IProductService {
         existing.setCostPrice(productDetails.getCostPrice());
         existing.setStock(productDetails.getStock());
         existing.setReorderLevel(productDetails.getReorderLevel());
-        existing.setImageUrl(productDetails.getImageUrl());
         existing.setUpdatedAt(LocalDateTime.now());
+
+        // 🔵 Nếu có upload ảnh mới → upload lên Cloudinary
+        if (imageFile != null && !imageFile.isEmpty()) {
+            try {
+                var uploadResult = cloudinary.uploader().upload(
+                        imageFile.getBytes(),
+                        ObjectUtils.asMap("folder", "pos/products")
+                );
+                existing.setImageUrl(uploadResult.get("secure_url").toString());
+            } catch (Exception e) {
+                throw new RuntimeException("Không upload được ảnh sản phẩm", e);
+            }
+        }
+
         return productRepository.save(existing);
     }
+
 
     @Override
     public void delete(Long id, Long storeId) {
